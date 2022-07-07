@@ -1,0 +1,48 @@
+schemaVersion: 2.1.0
+metadata:
+  name: java-maven-quarkus-lombok
+  version: 2.1.0
+components:
+  - container:
+      name: tools
+      args:
+        - sh
+        - '-c'
+        - '${PLUGIN_REMOTE_ENDPOINT_EXECUTABLE}'
+      endpoints:
+        - exposure: none
+          name: debug
+          protocol: tcp
+          targetPort: 5005
+        - exposure: public
+          name: blog-posts-endpoint
+          path: /blog/posts
+          protocol: http
+          targetPort: 8080
+      env:
+        - name: QUARKUS_HTTP_HOST
+          value: 0.0.0.0
+        - name: PLUGIN_REMOTE_ENDPOINT_EXECUTABLE
+          value: /remote-endpoint/plugin-remote-endpoint
+        - name: THEIA_PLUGINS
+          value: 'local-dir:///plugins/sidecars/tools'
+        # - name: CHE_DASHBOARD_URL
+        #   value: 'https://devspaces-dev-spaces-demo.apps.cluster-svmfx.svmfx.sandbox1581.opentlc.com'
+        # - name: CHE_PLUGIN_REGISTRY_URL
+        #   value: 'https://devspaces-dev-spaces-demo.apps.cluster-svmfx.svmfx.sandbox1581.opentlc.com/plugin-registry/v3'
+        - name: CHE_PLUGIN_REGISTRY_INTERNAL_URL
+          value: 'http://plugin-registry.dev-spaces-demo.svc:8080/v3'
+      image: 'registry.redhat.io/devspaces/udi-rhel8'
+      memoryLimit: 4G
+      mountSources: true
+      sourceMapping: /projects
+      volumeMounts:
+        - name: m2
+          path: /home/user/.m2
+        - name: remote-endpoint
+          path: /remote-endpoint
+        - name: plugins
+          path: /plugins
+  - name: m2
+    volume:
+      size: 1G
