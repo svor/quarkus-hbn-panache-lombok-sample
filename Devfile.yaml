@@ -3,6 +3,11 @@ metadata:
   name: java-maven-quarkus-lombok
   version: 2.1.0
 components:
+  - type: chePlugin
+    id: redhat/java11/latest
+    preferences:
+      java.server.launchMode: Standard
+      java.jdt.ls.vmargs: -javaagent:/lombok.jar
   - container:
       name: tools
       args:
