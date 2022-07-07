@@ -1,10 +1,8 @@
 schemaVersion: 2.1.0
 metadata:
   name: java-maven-quarkus-lombok
-  version: 2.1.0
 components:
   - container:
-      name: tools
       args:
         - sh
         - '-c'
@@ -43,6 +41,7 @@ components:
           path: /remote-endpoint
         - name: plugins
           path: /plugins
+    name: tools
   - name: m2
     volume:
       size: 1G
