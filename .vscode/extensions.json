@@ -1,6 +1,8 @@
 {
     "recommendations": [
-      "redhat/java/latest",
-      "redhat/quarkus-java11/latest"
+      // "redhat/java/latest",
+      // "redhat/quarkus-java11/latest",      
+      "redhat.java",
+      "redhat.vscode-quarkus"
     ]
 }
