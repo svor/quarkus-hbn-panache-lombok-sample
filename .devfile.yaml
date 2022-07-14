@@ -31,7 +31,7 @@ components:
       env:
         - name: QUARKUS_HTTP_HOST
           value: 0.0.0.0
-      image: 'registry.redhat.io/devspaces/udi-rhel8'
+      image: 'quay.io/devspaces/udi-rhel8:3.2'
       memoryLimit: 4G
       mountSources: true
       sourceMapping: /projects
