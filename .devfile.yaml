@@ -1,88 +1,92 @@
 schemaVersion: 2.1.0
 metadata:
-  name: java-maven-quarkus-lombok
+  name: quarkus-api-example
 components:
-  # - attributes:
-  #     app.kubernetes.io/name: tools
-  #     che-theia.eclipse.org/vscode-extensions:
-  #       - 'https://github.com/redhat-developer/codeready-workspaces-vscode-extensions/releases/download/7.44-che-assets/vscode-quarkus-1.7.0-437.vsix'
-  #       - 'https://github.com/redhat-developer/codeready-workspaces-vscode-extensions/releases/download/7.44-che-assets/java-0.82.0-369.vsix'
-  #       - 'https://github.com/redhat-developer/codeready-workspaces-vscode-extensions/releases/download/7.44-che-assets/vscode-microprofile-0.1.1-48.vsix'
-  #       - 'https://github.com/redhat-developer/codeready-workspaces-vscode-extensions/releases/download/7.44-che-assets/vscode-java-debug-0.26.0.vsix'
-  #       - 'https://open-vsx.org/api/vscjava/vscode-java-test/0.28.1/file/vscjava.vscode-java-test-0.28.1.vsix'
-  #     che-theia.eclipse.org/vscode-preferences:
-  #       java.server.launchMode: Standard
   - name: tools
     container:
-      args:
-        - sh
-        - '-c'
-        - '${PLUGIN_REMOTE_ENDPOINT_EXECUTABLE}'
+      image: quay.io/devspaces/udi-rhel8:3.2
+      env:
+        - name: QUARKUS_HTTP_HOST
+          value: 0.0.0.0
       endpoints:
         - exposure: none
           name: debug
           protocol: tcp
           targetPort: 5005
         - exposure: public
-          name: blog-posts-endpoint
-          path: /blog/posts
+          name: list-all-food
           protocol: http
           targetPort: 8080
-      env:
-        - name: QUARKUS_HTTP_HOST
-          value: 0.0.0.0
-      image: 'quay.io/devspaces/udi-rhel8:3.2'
-      memoryLimit: 4G
-      mountSources: true
-      sourceMapping: /projects
+          path: /food
       volumeMounts:
         - name: m2
           path: /home/user/.m2
-  - container:
-      args:
-        - '-f'
-        - /dev/null
-      command:
-        - tail
+      memoryLimit: 8G
+      mountSources: true
+
+  - name: ubi-minimal
+    container:
       image: registry.access.redhat.com/ubi8/ubi-minimal
+      command: ['tail']
+      args: ['-f', '/dev/null']
       memoryLimit: 64M
       mountSources: true
-      sourceMapping: /projects
-    name: ubi-minimal
+
+  - name: postgresql
+    container:
+      image: 'quay.io/centos7/postgresql-13-centos7@sha256:994f5c622e2913bda1c4a7fa3b0c7e7f75e7caa3ac66ff1ed70ccfe65c40dd75'
+      env:
+        - name: POSTGRESQL_USER
+          value: user
+        - name: POSTGRESQL_PASSWORD
+          value: password
+        - name: POSTGRESQL_DATABASE
+          value: food_db
+        - name: PGDATA
+          value: /tmp/pgdata
   - name: m2
     volume:
       size: 1G
-# commands:
-#   - exec:
-#       commandLine: mvn package
-#       component: tools
-#       group:
-#         isDefault: true
-#         kind: build
-#       workingDir: '${PROJECT_SOURCE}/getting-started'
-#     id: package
-#   - exec:
-#       commandLine: mvn package -Dnative -Dmaven.test.skip -Dquarkus.native.native-image-xmx=2G
-#       component: tools
-#       group:
-#         kind: build
-#       label: Package Native
-#       workingDir: '${PROJECT_SOURCE}/getting-started'
-#     id: package-native
-#   - exec:
-#       commandLine: 'mvn compile quarkus:dev'
-#       component: tools
-#       group:
-#         isDefault: true
-#         kind: run
-#       label: Start Development mode (Hot reload + debug)
-#       workingDir: '${PROJECT_SOURCE}/getting-started'
-#     id: start-dev
-#   - exec:
-#       commandLine: ./getting-started-1.0.0-SNAPSHOT-runner
-#       component: ubi-minimal
-#       group:
-#         kind: run
-#       label: Start Native
-#       workingDir: '${PROJECT_SOURCE}/getting-started/target'
-#     id: start-native
+commands:
+  - id: package
+    exec:
+      label: "Package"
+      component: tools
+      workingDir: ${PROJECTS_ROOT}/quarkus-api-example
+      commandLine: "./mvnw package"
+      group:
+        kind: build
+        isDefault: true
+  - id: runtests
+    exec:
+      label: "Run tests"
+      component: tools
+      workingDir: ${PROJECTS_ROOT}/quarkus-api-example
+      commandLine: "./mvnw test"
+      group:
+        kind: test
+  - id: packagenative
+    exec:
+      label: "Package Native"
+      component: tools
+      workingDir: ${PROJECTS_ROOT}/quarkus-api-example
+      commandLine: "./mvnw package -Dnative -Dmaven.test.skip -Dquarkus.native.native-image-xmx=3G"
+      group:
+        kind: build
+  - id: startdev
+    exec:
+      label: "Start Development mode (Hot reload + debug)"
+      component: tools
+      workingDir: ${PROJECTS_ROOT}/quarkus-api-example
+      commandLine: "./mvnw compile quarkus:dev"
+      group:
+        kind: run
+        isDefault: true
+  - id: startnative
+    exec:
+      label: "Start Native"
+      component: ubi-minimal
+      workingDir: ${PROJECTS_ROOT}/quarkus-api-example/target
+      commandLine: "./quarkus-api-example-1.0.0-SNAPSHOT-runner"
+      group:
+        kind: run
